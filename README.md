@@ -1,3 +1,21 @@
+INSTRUCTIONS
+1. Create the following two files in the .git/hooks/ directory of your app:
+  a. pre-commit
+  b. post-merge
+2. In each of those two files, add the following lines:
+  #!/bin/sh
+  ruby script/spec_files/pre_commit_spec_files_check.rb # get correct directory
+  git add .travis.yml
+3. In your travis.yml file, you create a top-level variable 'num_builds' and set it to the number of builds you want the spec files distributed over
+4. Make sure that the base of your script is as follows:
+  a. bundle exec rspec $TEST_SUITE
+
+
+
+
+
+
+
 # SpecDistributor
 
 TODO: Write a gem description
