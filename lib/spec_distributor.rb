@@ -1,12 +1,21 @@
 require "spec_distributor/version"
 require 'yaml'
+require 'rake'
 
-module SpecDistributor
+namespace :spec_distributor do
+  desc "Runs whole test suite and redistributes spec files across builds according to file run time"
+  task :redistribute => :environment do
+    profile_results = `rspec spec/models/ --profile 1000000000`
+print profile_results
+    travis_yml_file = YAML::load(File.open('.travis.yml'))
+
+    TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results)
+  end
+end
+
+module TravisBuildMatrix
   
   DEFAULT_NUM_BUILDS = 5
-
-  travis_yml_file = YAML::load(File.open('.travis.yml'))
-  profile_results = ARGF.read
 
   # module TravisBuildMatrix
     class SpecFile
@@ -32,7 +41,7 @@ module SpecDistributor
       end
     end
 
-    class TestDistributor
+    class SpecDistributor
       EXTRACT_DURATION_AND_FILE_PATH = /\s{1}\(([0-9\.]*\s).*\.\/(spec.*):/
 
       def initialize(travis_yml_file, profile_results)
@@ -93,6 +102,5 @@ module SpecDistributor
 
     end
   # end
-
-  SpecDistributor::TestDistributor.new(travis_yml_file, profile_results)
+  
 end
