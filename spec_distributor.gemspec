@@ -6,10 +6,10 @@ require 'spec_distributor/version'
 Gem::Specification.new do |spec|
   spec.name          = "spec_distributor"
   spec.version       = SpecDistributor::VERSION
-  spec.authors       = ["TODO: Write your name"]
+  spec.authors       = ["Matt Schmaus"]
   spec.email         = ["mschmaus201@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.description   = 'TODO: Write a gem description'
+  spec.summary       = 'TODO: Write a gem summary'
   spec.homepage      = ""
   spec.license       = "MIT"
 
