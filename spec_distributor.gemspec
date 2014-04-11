@@ -8,8 +8,12 @@ Gem::Specification.new do |spec|
   spec.version       = SpecDistributor::VERSION
   spec.authors       = ["Matt Schmaus"]
   spec.email         = ["mschmaus201@gmail.com"]
-  spec.description   = 'Write a gem description'
-  spec.summary       = 'Write a gem summary'
+  spec.description   = <<-EOF
+    This gem will parse the output of calling "rspec --perform", then will redistribute
+    the spec files evenly, based on file run time, across all builds established
+    in the travis.yml file.
+  EOF
+  spec.summary       = 'Distribute spec files evenly across Travis builds, based on file run time'
   spec.homepage      = ""
   spec.license       = "MIT"
 
