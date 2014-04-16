@@ -4,7 +4,7 @@ require 'yaml'
 namespace :spec_distributor do
   desc 'Runs whole test suite and redistributes spec files across builds according to file run time'
   task :redistribute => :environment do
-    profile_results = `rspec spec/models --profile 1000000000`
+    profile_results = `rspec --profile 1000000000`
     travis_yml_file = YAML::load(File.open('.travis.yml'))
     TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results)
   end
