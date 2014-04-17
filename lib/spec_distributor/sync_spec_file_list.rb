@@ -3,7 +3,7 @@ require 'yaml'
 
 namespace :spec_distributor do
   desc 'Compares spec files in travis.yml to current list of spec files, and syncs accordingly'
-  task :sync_file_list => :environment do
+  task :sync_file_list do
     content = YAML::load(File.open('.travis.yml'))
     current_file_list = Dir.glob('spec/**/*_spec.rb').map { |file_path| file_path.slice(/(spec\/\S+$)/) }
     
