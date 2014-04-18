@@ -6,7 +6,9 @@ namespace :spec_distributor do
   task :redistribute => :environment do
     profile_results = `rspec --profile 1000000000`
     travis_yml_file = YAML::load(File.open('.travis.yml'))
+
     TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results)
+    `echo #{profile_results}`
   end
 end
 
