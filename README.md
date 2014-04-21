@@ -1,4 +1,4 @@
-# SpecDistributor
+# SpecTiller
 
   This gem will parse the output of calling "rspec --perform", then will redistribute
   the spec files evenly, based on file run time, across all builds established

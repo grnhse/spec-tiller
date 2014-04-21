@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'spec_distributor/version'
+require 'spec_tiller/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "spec_distributor"
-  spec.version       = SpecDistributor::VERSION
+  spec.name          = "spec_tiller"
+  spec.version       = SpecTiller::VERSION
   spec.authors       = ["Matt Schmaus"]
   spec.email         = ["mschmaus201@gmail.com"]
   spec.description   = <<-EOF
