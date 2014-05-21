@@ -8,7 +8,7 @@ namespace :spec_tiller do
     current_file_list = Dir.glob('spec/**/*_spec.rb').map { |file_path| file_path.slice(/(spec\/\S+$)/) }
     
     puts "\nSyncing list of spec files..."
-    puts SyncSpecFiles::rewrite_travis_content(content, current_file_list) # returns the file list diff
+    puts SyncSpecFiles.rewrite_travis_content(content, current_file_list) # returns the file list diff
 
     `git add .travis.yml`
   end
@@ -29,10 +29,11 @@ module SyncSpecFiles
     File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
     file_diff(original, current_file_list)
   end
+  module_function :rewrite_travis_content
 
   private
 
-    def extract_spec_files(content)
+    def self.extract_spec_files(content)
       test_suites = content['env'].select { |el| el.start_with?('TEST_SUITE=') }
 
       test_suites.map do |test_suite|
@@ -40,7 +41,7 @@ module SyncSpecFiles
       end
     end
 
-    def delete_removed_files(original, current_file_list)
+    def self.delete_removed_files(original, current_file_list)
       deleted_files = deleted_files(original, current_file_list)
 
       original.map do |bucket|
@@ -48,7 +49,7 @@ module SyncSpecFiles
       end
     end
 
-    def add_new_files(original, buckets, current_file_list)
+    def self.add_new_files(original, buckets, current_file_list)
       buckets_clone = buckets.map(&:dup)
 
       added_files(original, current_file_list).each do |spec_file|
@@ -58,22 +59,21 @@ module SyncSpecFiles
       buckets_clone
     end
 
-    def deleted_files(original, current_file_list)
+    def self.deleted_files(original, current_file_list)
       original.flatten - current_file_list
     end
 
-    def added_files(original, current_file_list)
+    def self.added_files(original, current_file_list)
       current_file_list - original.flatten
     end
 
-    def file_diff(original, current_file_list)
+    def self.file_diff(original, current_file_list)
       removed_files = deleted_files(original, current_file_list).sort
-      removed = removed_files.empty? ? 'No files removed' : removed_files
+      removed = removed_files.empty? ? 'No spec files removed' : removed_files
 
       added_files = added_files(original, current_file_list).sort
-      added = added_files.empty? ? 'No files added' : added_files
+      added = added_files.empty? ? 'No spec files added' : added_files
 
-      "Removed: #{removed}\n
-       Added:   #{added}"
+      "  Removed: #{removed}\n  Added:   #{added}\n\n"
     end
 end
