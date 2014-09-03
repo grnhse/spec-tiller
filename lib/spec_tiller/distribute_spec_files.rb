@@ -4,9 +4,13 @@ require 'yaml'
 namespace :spec_tiller do
   desc 'Runs whole test suite and redistributes spec files across builds according to file run time'
   task :redistribute => :environment do
-    profile_results = `rspec --profile 1000000000`
     travis_yml_file = YAML::load(File.open('.travis.yml'))
+    env_variables = travis_yml_file['env']['global']
+    script = travis_yml_file['script'].first.gsub('$TEST_SUITE ', '')
 
+    profile_results = `#{env_variables.join(' ')} #{script} --profile 1000000000`
+
+    `echo "#{profile_results}" > spec/log/rspec_profile_output.txt`
     TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results)
     puts profile_results
   end
@@ -86,13 +90,13 @@ module TravisBuildMatrix
       private
 
         def rewrite_content(test_buckets, content)
-          content['env'] ||= [] # initialize env if not already set
-          content['env'] = content['env'].map { |el| el if !el.start_with?('TEST_SUITE=') }.compact
+          content['env']['matrix'] ||= [] # initialize env if not already set
+          content['env']['matrix'] = content['env']['matrix'].map { |el| el if !el.start_with?('TEST_SUITE=') }.compact
 
           test_buckets.each_with_index do |test_bucket, index|
             spec_file_list = test_bucket.spec_files.map(&:file_path).join(' ')
 
-            content['env'] << "TEST_SUITE=\"#{spec_file_list}\""
+            content['env']['matrix'] << "TEST_SUITE=\"#{spec_file_list}\""
           end
 
           File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }

@@ -60,7 +60,9 @@ Here is an example of what a ``.travis.yml`` file may look like after all is sai
     script:
       - bundle exec rspec $TEST_SUITE --tag ~local_only
     env:
+      global:
       - SOME_OTHER_ENV_VAR="hello world"
+      matrix:
       - TEST_SUITE="spec/path/file_one_spec.rb spec/path/file_two_spec.rb spec/path/file_three_spec.rb"
       - TEST_SUITE="spec/path/file_four_spec.rb"
       - TEST_SUITE="spec/path/file_five_spec.rb spec/path/file_six_spec.rb"

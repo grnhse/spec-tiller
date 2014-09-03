@@ -20,10 +20,10 @@ module SyncSpecFiles
     after_removed = delete_removed_files(original, current_file_list)
     after_added = add_new_files(original, after_removed, current_file_list)
 
-    content['env'] = content['env'].map { |el| el if !el.start_with?('TEST_SUITE=') }.compact
+    content['env']['matrix'] = content['env']['matrix'].map { |el| el if !el.start_with?('TEST_SUITE=') }.compact
 
     after_added.each do |bucket|
-      content['env'] << "TEST_SUITE=\"#{bucket.join(' ')}\""
+      content['env']['matrix'] << "TEST_SUITE=\"#{bucket.join(' ')}\""
     end
 
     File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
@@ -34,7 +34,7 @@ module SyncSpecFiles
   private
 
     def self.extract_spec_files(content)
-      test_suites = content['env'].select { |el| el.start_with?('TEST_SUITE=') }
+      test_suites = content['env']['matrix'].select { |el| el.start_with?('TEST_SUITE=') }
 
       test_suites.map do |test_suite|
         test_suite.gsub('TEST_SUITE=', '').gsub('"', '').split(' ')
