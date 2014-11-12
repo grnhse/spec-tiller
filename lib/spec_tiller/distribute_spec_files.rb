@@ -91,12 +91,31 @@ module TravisBuildMatrix
 
         def rewrite_content(test_buckets, content)
           content['env']['matrix'] ||= [] # initialize env if not already set
-          content['env']['matrix'] = content['env']['matrix'].map { |el| el if !el.start_with?('TEST_SUITE=') }.compact
+          other_vars = [] # used with regex below to store extra vars
+          test_suite_regex = /TEST_SUITE=".+rb"/
+
+          content['env']['matrix'] = content['env']['matrix'].map do |el|
+
+            test_suite_str = el.split(test_suite_regex).join.strip
+            other_vars.push(test_suite_str) # add extra vars to array if they exist
+
+            el unless el.start_with?('TEST_SUITE=')
+          end.compact
+
+          other_vars.compact
 
           test_buckets.each_with_index do |test_bucket, index|
             spec_file_list = test_bucket.spec_files.map(&:file_path).join(' ')
 
-            content['env']['matrix'] << "TEST_SUITE=\"#{spec_file_list}\""
+            test_suite = "TEST_SUITE=\"#{spec_file_list}\""
+
+            # adds extra variables back to previous line, ignores if number of lines is less now
+            if other_vars.length > index do
+              test_suite += other_vars[index]
+            end
+            end
+
+            content['env']['matrix'] << test_suite
           end
 
           File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
