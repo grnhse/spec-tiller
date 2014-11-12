@@ -121,6 +121,26 @@ module TravisBuildMatrix
           File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
         end
 
+      private
+
+        def split_vars(matrix_var_array)
+
+          matrix_var_hash_array = []
+          matrix_var_array.each do |row|
+            row_var_array = row.split(' ')
+            row_hash = {}
+
+            row_var_array.each do |var_set_s|
+              var_set_array = var_set_s.split('=')
+              row_hash[var_set_array[0]] = var_set_array[1]
+            end
+
+            matrix_var_hash_array.push(row_hash)
+          end
+
+          return matrix_var_hash_array
+        end
+
     end
   
 end
