@@ -1,7 +1,4 @@
-namespace :spec_tiller do
-  desc 'Includes functions to parse build matrix strings into hashes and to compress them back into strings.'
-end
-
+# Includes functions to parse build matrix strings into hashes and to compress them back into strings.'
 module BuildMatrixParser
   def parse_env_matrix(content)
     content['env']['matrix'].map do |matrix_line|
