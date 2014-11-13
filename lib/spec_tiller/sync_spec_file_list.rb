@@ -15,16 +15,22 @@ namespace :spec_tiller do
 end
 
 module SyncSpecFiles
+  include BuildMatrixParser
+
   def rewrite_travis_content(content, current_file_list)
-    original = extract_spec_files(content)
+    env_matrix = BuildMatrixParser.parse_env_matrix(content)
+    original = extract_spec_files(env_matrix)
     after_removed = delete_removed_files(original, current_file_list)
     after_added = add_new_files(original, after_removed, current_file_list)
 
-    content['env']['matrix'] = content['env']['matrix'].map { |el| el if !el.start_with?('TEST_SUITE=') }.compact
+    env_matrix.each do |var_hash|
+      test_bucket = after_added.shift
+      break if test_bucket.nil?
 
-    after_added.each do |bucket|
-      content['env']['matrix'] << "TEST_SUITE=\"#{bucket.join(' ')}\""
+      var_hash['TEST_SUITE'] = "#{test_bucket.join(' ')}"
     end
+
+    content['env']['matrix'] = BuildMatrixParser.unparse_env_matrix(env_matrix)
 
     File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
     file_diff(original, current_file_list)
@@ -33,12 +39,12 @@ module SyncSpecFiles
 
   private
 
-    def self.extract_spec_files(content)
-      test_suites = content['env']['matrix'].select { |el| el.start_with?('TEST_SUITE=') }
-
-      test_suites.map do |test_suite|
-        test_suite.gsub('TEST_SUITE=', '').gsub('"', '').split(' ')
+    def self.extract_spec_files(env_matrix)
+      test_suites = env_matrix.map do |var_hash|
+        var_hash['TEST_SUITE'].gsub('"', '').split(' ') if var_hash.has_key?('TEST_SUITE')
       end
+
+      test_suites.compact
     end
 
     def self.delete_removed_files(original, current_file_list)

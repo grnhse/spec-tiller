@@ -83,6 +83,8 @@ module TravisBuildMatrix
     end
 
     class TravisFile
+      include BuildMatrixParser
+
       def initialize(test_buckets, travis_yml_file)
         rewrite_content(test_buckets, travis_yml_file)
       end
@@ -92,63 +94,22 @@ module TravisBuildMatrix
         def rewrite_content(test_buckets, content)
           content['env']['matrix'] ||= [] # initialize env if not already set
 
-          matrix_var_hash_array = split_vars(content['env']['matrix']) # split var strings into hashes
+          # Split var strings into hashes.
+          env_matrix = BuildMatrixParser.parse_env_matrix(content)
 
-          content['env']['matrix'] = content['env']['matrix'].map do |el|
-            el unless el.include?('TEST_SUITE=')
-          end.compact
+          env_matrix.each do |var_hash|
+            test_bucket = test_buckets.shift
+            break if test_bucket.nil?
 
-          i = 0 # used to track row in matrix_var_hash_array
-          test_buckets.each_with_index do |test_bucket, index|
-
-            i = find_row_with_var(matrix_var_hash_array, i)
             spec_file_list = test_bucket.spec_files.map(&:file_path).join(' ')
-
-            if i != -1
-              matrix_var_hash_array[i][:TEST_SUITE] = "\"#{spec_file_list}\""
-              i += 1
-              test_suite = ''
-              matrix_var_hash_array[i].each do |key,value|
-                test_suite += "#{key}=#{value} "
-              end
-            else
-              test_suite = "TEST_SUITE=\"#{spec_file_list}\""
-            end
-
-            content['env']['matrix'] << test_suite
+            var_hash['TEST_SUITE'] = "#{spec_file_list}"
           end
+
+          content['env']['matrix'] = BuildMatrixParser.unparse_env_matrix(env_matrix)
 
           File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
         end
 
-        def split_vars(matrix_var_array)
-
-          matrix_var_array.map do |row|
-            row_var_sets = row.split(' ')
-            row = {}
-
-            row_var_sets.each do |var_set_s|
-              var_set_array = var_set_s.split('=')
-              row[var_set_array[0]] = var_set_array[1]
-            end
-
-            row
-          end
-
-          matrix_var_array
-        end
-
-      def find_row_with_var(var_hash_array, start_index = 0, var_to_find = 'TEST_SUITE')
-
-        if start_index < var_hash_array.length
-          if var_hash_array[start_index].has_value?(var_to_find) { start_index }
-
-          else find_row_with_var(var_hash_array, start_index + 1)
-
-          end
-        else -1
-        end
-      end
 
     end
   
