@@ -98,7 +98,7 @@ module TravisBuildMatrix
 
           if env_matrix.length > test_buckets.length
             env_matrix = env_matrix.slice(0, test_buckets.length)
-          else if env_matrix.length < test_buckets.length
+          elsif env_matrix.length < test_buckets.length
             (test_buckets.length - env_matrix.length).times {env_matrix.push({ 'TEST_SUITE' => '' })}
           end
 
@@ -113,7 +113,6 @@ module TravisBuildMatrix
 
           File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
         end
-
 
     end
   
