@@ -30,7 +30,7 @@ module SyncSpecFiles
       var_hash['TEST_SUITE'] = "#{test_bucket.join(' ')}"
     end
 
-    content['env']['matrix'] = BuildMatrixParser.unparse_env_matrix(env_matrix)
+    content['env']['matrix'] = BuildMatrixParser.format_matrix(env_matrix)
 
     File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
     file_diff(original, current_file_list)

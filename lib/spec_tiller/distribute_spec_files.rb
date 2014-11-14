@@ -105,7 +105,7 @@ module TravisBuildMatrix
             var_hash['TEST_SUITE'] = "#{spec_file_list}"
           end
 
-          content['env']['matrix'] = BuildMatrixParser.unparse_env_matrix(env_matrix)
+          content['env']['matrix'] = BuildMatrixParser.format_matrix(env_matrix)
 
           File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
         end

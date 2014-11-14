@@ -2,12 +2,15 @@
 module BuildMatrixParser
   def parse_env_matrix(content)
     content['env']['matrix'].map do |matrix_line|
+
+      # Input: TEST_SUITE="spec/a.rb spec/b.rb" RUN_JS="true"
+      # Output: { 'TEST_SUITE' => 'spec/a.rb spec/b.rb', 'RUN_JS' => 'true' }
       Hash[matrix_line.scan(/\s*([^=]+)="\s*([^"]+)"/)]
     end
   end
   module_function :parse_env_matrix
 
-  def unparse_env_matrix(env_matrix)
+  def format_matrix(env_matrix)
     content_env_matrix = []
 
     env_matrix.each do |var_hash|
