@@ -94,12 +94,16 @@ module TravisBuildMatrix
         def rewrite_content(test_buckets, content)
           content['env']['matrix'] ||= [] # initialize env if not already set
 
-          # Split var strings into hashes.
           env_matrix = BuildMatrixParser.parse_env_matrix(content)
+
+          if env_matrix.length > test_buckets.length
+            env_matrix = env_matrix.slice(0, test_buckets.length)
+          else if env_matrix.length < test_buckets.length
+            (test_buckets.length - env_matrix.length).times {env_matrix.push({ 'TEST_SUITE' => '' })}
+          end
 
           env_matrix.each do |var_hash|
             test_bucket = test_buckets.shift
-            break if test_bucket.nil?
 
             spec_file_list = test_bucket.spec_files.map(&:file_path).join(' ')
             var_hash['TEST_SUITE'] = "#{spec_file_list}"

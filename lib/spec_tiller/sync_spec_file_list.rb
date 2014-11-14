@@ -25,7 +25,6 @@ module SyncSpecFiles
 
     env_matrix.each do |var_hash|
       test_bucket = after_added.shift
-      break if test_bucket.nil?
 
       var_hash['TEST_SUITE'] = "#{test_bucket.join(' ')}"
     end

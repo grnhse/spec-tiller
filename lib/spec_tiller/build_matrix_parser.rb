@@ -22,6 +22,6 @@ module BuildMatrixParser
 
     content_env_matrix
   end
-  module_function :unparse_env_matrix
+  module_function :format_matrix
 
 end
