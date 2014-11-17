@@ -99,7 +99,7 @@ module TravisBuildMatrix
           if env_matrix.length > test_buckets.length
             env_matrix = env_matrix.slice(0, test_buckets.length)
           elsif env_matrix.length < test_buckets.length
-            (test_buckets.length - env_matrix.length).times {env_matrix.push({ 'TEST_SUITE' => '' })}
+            (test_buckets.length - env_matrix.length).times {env_matrix.push({ })}
           end
 
           env_matrix.each do |var_hash|
