@@ -44,6 +44,7 @@ module TravisBuildMatrix
     end
 
     class SpecDistributor
+
       EXTRACT_DURATION_AND_FILE_PATH = /\s{1}\(([0-9\.]*\s).*\.\/(spec.*):/
 
       def initialize(travis_yml_file, profile_results)
@@ -60,6 +61,10 @@ module TravisBuildMatrix
       private
 
         def parse_profile_results(profile_results)
+
+          #Input: Walnuts
+          #        9.96 seconds average (69.69 seconds / 7 examples) ./spec/features/walnut_spec.rb:3
+          #Output: ["9.96", "spec/features/walnut_spec.rb"]
           extracted_info = profile_results.scan(EXTRACT_DURATION_AND_FILE_PATH).uniq { |spec_file| spec_file.last }
           
           tests = extracted_info.map do |capture_groups|

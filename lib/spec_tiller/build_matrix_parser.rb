@@ -17,7 +17,7 @@ module BuildMatrixParser
     content_env_matrix = []
 
     env_matrix.each do |var_hash|
-      next if var_hash.empty?
+      next if var_hash.empty? || var_hash["TEST_SUITE"].empty?
       line = var_hash.map { |key, value| %Q(#{key}="#{value}") }.join(' ')
 
       content_env_matrix << line

@@ -31,4 +31,4 @@ env:
   - l0w3rC@5e&nUm5&sym()1s="~!@#$%^&*()_+1234567890-=`{}[]|:;''<>,.?/" TEST_SUITE="spec/features/test.rb"
   -
   - TEST_SUITE="spec/test/test1.rb spec/test/test2.rb spec/test/test3.rb spec/test/test4.rb spec/test/test5.rb spec/test/test6.rb spec/test/test7.rb spec/test/test8.rb spec/test/test9.rb spec/test/test10.rb spec/test/test11.rb spec/test/test12.rb spec/test/test13.rb spec/test/test14.rb spec/test/test15.rb spec/test/test16.rb"
-  num_builds: 10
+num_builds: 10
