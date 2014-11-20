@@ -47,9 +47,6 @@ describe 'TravisBuildMatrix' do
     let(:profile_results) { File.read('spec/documents/rspec_profile_results.txt') }
 
     describe '::new' do
-      before(:each) do
-        allow(File).to receive(:open).and_return(true)
-      end
 
       it 'defaults to 5 builds' do
         travis_yml_file['num_builds'] = nil
@@ -112,10 +109,6 @@ describe 'TravisBuildMatrix' do
          create_bucket(10.7, ['spec/test/test1.rb', 'spec/test/test2.rb', 'spec/test/test3.rb', 'spec/test/test4.rb', 'spec/test/test5.rb', 'spec/test/test6.rb', 'spec/test/test7.rb', 'spec/test/test8.rb', 'spec/test/test9.rb', 'spec/test/test10.rb', 'spec/test/test11.rb', 'spec/test/test12.rb', 'spec/test/test13.rb', 'spec/test/test14.rb', 'spec/test/test15.rb', 'spec/test/test16.rb']),
          create_bucket(10.4, ['spec/features/long_spec.rb']),
          create_bucket(9.1, ['spec/features/short_1_spec.rb', 'spec/features/short_2_spec.rb', 'spec/features/short_3_spec.rb'])]
-      end
-
-      before(:each) do
-        allow(File).to receive(:open).and_return(true)
       end
 
       context 'buckets are removed' do

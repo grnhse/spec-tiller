@@ -11,7 +11,9 @@ namespace :spec_tiller do
     profile_results = `#{env_variables.join(' ')} #{script} --profile 1000000000`
 
     `echo "#{profile_results}" > spec/log/rspec_profile_output.txt`
-    TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results)
+    TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results) do |content|
+      File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
+    end
     puts profile_results
   end
 end
@@ -47,7 +49,7 @@ module TravisBuildMatrix
 
       EXTRACT_DURATION_AND_FILE_PATH = /\s{1}\(([0-9\.]*\s).*\.\/(spec.*):/
 
-      def initialize(travis_yml_file, profile_results)
+      def initialize(travis_yml_file, profile_results, &block)
         num_buckets = travis_yml_file['num_builds'] || DEFAULT_NUM_BUILDS
 
         @spec_files = parse_profile_results(profile_results)
@@ -55,7 +57,7 @@ module TravisBuildMatrix
         
         distribute_tests
 
-        TravisBuildMatrix::TravisFile.new(@test_buckets, travis_yml_file)
+        TravisBuildMatrix::TravisFile.new(@test_buckets, travis_yml_file, &block)
       end
 
       private
@@ -90,8 +92,9 @@ module TravisBuildMatrix
     class TravisFile
       include BuildMatrixParser
 
-      def initialize(test_buckets, travis_yml_file)
+      def initialize(test_buckets, travis_yml_file, &block)
         rewrite_content(test_buckets, travis_yml_file)
+        block.call(travis_yml_file) if block
       end
 
       private
@@ -115,8 +118,6 @@ module TravisBuildMatrix
           end
 
           content['env']['matrix'] = BuildMatrixParser.format_matrix(env_matrix)
-
-          File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
         end
 
     end
