@@ -6,8 +6,8 @@ require 'spec_tiller/version'
 Gem::Specification.new do |spec|
   spec.name          = "spec_tiller"
   spec.version       = SpecTiller::VERSION
-  spec.authors       = ["Matt Schmaus"]
-  spec.email         = ["mschmaus201@gmail.com"]
+  spec.authors       = ["Matt Schmaus","Josh Bazemore"]
+  spec.email         = ["mschmaus201@gmail.com","jbazemore@greenhouse.io"]
   spec.description   = <<-EOF
     This gem will parse the output of calling "rspec --perform", then will redistribute
     the spec files evenly, based on file run time, across all builds established
@@ -24,4 +24,5 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
+  spec.add_development_dependency "rspec"
 end

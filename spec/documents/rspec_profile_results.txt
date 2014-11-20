@@ -1,0 +1,23 @@
+Below is the relevant part of profile results:
+
+Top 10 slowest example groups:
+  Walnut
+    0.35161 seconds average (42.19 seconds / 120 examples) ./spec/feature/walnut_spec.rb:4
+  Acorn
+    0.1916 seconds average (4.6 seconds / 24 examples) ./spec/models/acorn_spec.rb:3
+  Pistachio
+    0.00297 seconds average (0.06826 seconds / 23 examples) ./spec/lib/pistachio_spec.rb:3
+  Cashew
+    12.55 seconds average (87.85 seconds / 7 examples) ./spec/features/cashew_spec.rb:3
+  Peanut
+    12.22 seconds average (305.54 seconds / 25 examples) ./spec/features/peanut_spec.rb:102
+  Pecan
+    12.17 seconds average (48.68 seconds / 4 examples) ./spec/features/pecan_spec.rb:3
+  Almond
+    11.8 seconds average (259.54 seconds / 22 examples) ./spec/features/almond_spec.rb:84
+  Special Chars
+    11.55 seconds average (69.28 seconds / 6 examples) ./spec/features/~!@#$^()_+1234567890-=`{}[];',_spec.rb:3
+  Different Ending
+    11.43 seconds average (331.49 seconds / 29 examples) ./spec/features/different_ending.rb:3
+  Different Extension
+    11.16 seconds average (66.98 seconds / 6 examples) ./spec/features/different_extension_spec.txt:3

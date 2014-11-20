@@ -11,7 +11,9 @@ namespace :spec_tiller do
     profile_results = `#{env_variables.join(' ')} #{script} --profile 1000000000`
 
     `echo "#{profile_results}" > spec/log/rspec_profile_output.txt`
-    TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results)
+    TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results) do |content|
+      File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
+    end
     puts profile_results
   end
 end
@@ -44,9 +46,10 @@ module TravisBuildMatrix
     end
 
     class SpecDistributor
+
       EXTRACT_DURATION_AND_FILE_PATH = /\s{1}\(([0-9\.]*\s).*\.\/(spec.*):/
 
-      def initialize(travis_yml_file, profile_results)
+      def initialize(travis_yml_file, profile_results, &block)
         num_buckets = travis_yml_file['num_builds'] || DEFAULT_NUM_BUILDS
 
         @spec_files = parse_profile_results(profile_results)
@@ -54,12 +57,16 @@ module TravisBuildMatrix
         
         distribute_tests
 
-        TravisBuildMatrix::TravisFile.new(@test_buckets, travis_yml_file)
+        TravisBuildMatrix::TravisFile.new(@test_buckets, travis_yml_file, &block)
       end
 
       private
 
         def parse_profile_results(profile_results)
+
+          #Input: Walnuts
+          #        9.96 seconds average (69.69 seconds / 7 examples) ./spec/features/walnut_spec.rb:3
+          #Output: ["9.96", "spec/features/walnut_spec.rb"]
           extracted_info = profile_results.scan(EXTRACT_DURATION_AND_FILE_PATH).uniq { |spec_file| spec_file.last }
           
           tests = extracted_info.map do |capture_groups|
@@ -83,23 +90,34 @@ module TravisBuildMatrix
     end
 
     class TravisFile
-      def initialize(test_buckets, travis_yml_file)
+      include BuildMatrixParser
+
+      def initialize(test_buckets, travis_yml_file, &block)
         rewrite_content(test_buckets, travis_yml_file)
+        block.call(travis_yml_file) if block
       end
 
       private
 
         def rewrite_content(test_buckets, content)
           content['env']['matrix'] ||= [] # initialize env if not already set
-          content['env']['matrix'] = content['env']['matrix'].map { |el| el if !el.start_with?('TEST_SUITE=') }.compact
 
-          test_buckets.each_with_index do |test_bucket, index|
-            spec_file_list = test_bucket.spec_files.map(&:file_path).join(' ')
+          env_matrix = BuildMatrixParser.parse_env_matrix(content)
 
-            content['env']['matrix'] << "TEST_SUITE=\"#{spec_file_list}\""
+          if env_matrix.length > test_buckets.length
+            env_matrix = env_matrix.slice(0, test_buckets.length)
+          elsif env_matrix.length < test_buckets.length
+            (test_buckets.length - env_matrix.length).times {env_matrix.push({ })}
           end
 
-          File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
+          env_matrix.each do |var_hash|
+            test_bucket = test_buckets.shift
+
+            spec_file_list = test_bucket.spec_files.map(&:file_path).join(' ')
+            var_hash['TEST_SUITE'] = "#{spec_file_list}"
+          end
+
+          content['env']['matrix'] = BuildMatrixParser.format_matrix(env_matrix)
         end
 
     end
