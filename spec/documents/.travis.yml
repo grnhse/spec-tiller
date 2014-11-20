@@ -1,0 +1,34 @@
+---
+language: ruby
+rvm:
+- 2.1.2
+addons:
+  hosts:
+  - example.com
+branches:
+  only:
+  - develop
+  - master
+  - "/^release\\/.*$/"
+  - "/^hotfix\\/.*$/"
+  - "/^feature\\/testing-.+$/"
+cache: bundler
+before_install:
+- export DISPLAY=:99.0
+- "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1920x1080x16"
+before_script:
+- psql -c 'create database test;' -U postgres
+- RAILS_ENV=test bundle exec rake --trace db:test:load db:seed
+script:
+- RSPEC_RETRY_COUNT=2 bundle exec rspec $TEST_SUITE --tag ~local_only
+- if [[ $RUN_JS == "true" ]]; then bundle exec rake jasmine:ci; fi
+env:
+  global:
+  - RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.1
+  matrix:
+  - TEST_SUITE="spec/features/three_vars.rb" RUN_JS="true" FAKE_VAR="fake.value.rb"
+  - TEST_SUITE="spec/features/space_after.rb      spec/features/space_before.rb"          FIVE_TABS_BEFORE="tabs are ignored"
+  - l0w3rC@5e&nUm5&sym()1s="~!@#$%^&*()_+1234567890-=`{}[]|:;''<>,.?/" TEST_SUITE="spec/features/test.rb"
+  -
+  - TEST_SUITE="spec/test/test1.rb spec/test/test2.rb spec/test/test3.rb spec/test/test4.rb spec/test/test5.rb spec/test/test6.rb spec/test/test7.rb spec/test/test8.rb spec/test/test9.rb spec/test/test10.rb spec/test/test11.rb spec/test/test12.rb spec/test/test13.rb spec/test/test14.rb spec/test/test15.rb spec/test/test16.rb"
+num_builds: 10

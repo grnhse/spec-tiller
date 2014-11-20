@@ -8,37 +8,47 @@ namespace :spec_tiller do
     current_file_list = Dir.glob('spec/**/*_spec.rb').map { |file_path| file_path.slice(/(spec\/\S+$)/) }
     
     puts "\nSyncing list of spec files..."
-    puts SyncSpecFiles.rewrite_travis_content(content, current_file_list) # returns the file list diff
+
+    SyncSpecFiles.rewrite_travis_content(content, current_file_list) do |original|
+      write_to_file(content)
+      puts file_diff(original, current_file_list)
+    end
 
     `git add .travis.yml`
   end
 end
 
 module SyncSpecFiles
-  def rewrite_travis_content(content, current_file_list)
-    original = extract_spec_files(content)
+  include BuildMatrixParser
+
+  def rewrite_travis_content(content, current_file_list, &block)
+    env_matrix = BuildMatrixParser.parse_env_matrix(content)
+    original = extract_spec_files(env_matrix)
     after_removed = delete_removed_files(original, current_file_list)
     after_added = add_new_files(original, after_removed, current_file_list)
 
-    content['env']['matrix'] = content['env']['matrix'].map { |el| el if !el.start_with?('TEST_SUITE=') }.compact
+    env_matrix.each do |var_hash|
+      if var_hash.has_key?('TEST_SUITE')
+        test_bucket = after_added.shift
 
-    after_added.each do |bucket|
-      content['env']['matrix'] << "TEST_SUITE=\"#{bucket.join(' ')}\""
+        var_hash['TEST_SUITE'] = "#{test_bucket.join(' ')}"
+      end
     end
 
-    File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
-    file_diff(original, current_file_list)
+    content['env']['matrix'] = BuildMatrixParser.format_matrix(env_matrix)
+
+    block.call(original) if block
   end
+
   module_function :rewrite_travis_content
 
   private
 
-    def self.extract_spec_files(content)
-      test_suites = content['env']['matrix'].select { |el| el.start_with?('TEST_SUITE=') }
-
-      test_suites.map do |test_suite|
-        test_suite.gsub('TEST_SUITE=', '').gsub('"', '').split(' ')
+    def self.extract_spec_files(env_matrix)
+      test_suites = env_matrix.map do |var_hash|
+        var_hash.has_key?('TEST_SUITE') ? var_hash['TEST_SUITE'].gsub('"', '').split(' ') : nil
       end
+      test_suites.compact
     end
 
     def self.delete_removed_files(original, current_file_list)
@@ -65,6 +75,10 @@ module SyncSpecFiles
 
     def self.added_files(original, current_file_list)
       current_file_list - original.flatten
+    end
+
+    def self.write_to_file(content)
+      File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
     end
 
     def self.file_diff(original, current_file_list)
