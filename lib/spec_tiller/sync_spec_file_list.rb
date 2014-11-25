@@ -1,27 +1,11 @@
-require 'rake'
 require 'yaml'
-
-namespace :spec_tiller do
-  desc 'Compares spec files in travis.yml to current list of spec files, and syncs accordingly'
-  task :sync do
-    content = YAML::load(File.open('.travis.yml'))
-    current_file_list = Dir.glob('spec/**/*_spec.rb').map { |file_path| file_path.slice(/(spec\/\S+$)/) }
-    
-    puts "\nSyncing list of spec files..."
-
-    SyncSpecFiles.rewrite_travis_content(content, current_file_list) do |original|
-      write_to_file(content)
-      puts file_diff(original, current_file_list)
-    end
-
-    `git add .travis.yml`
-  end
-end
 
 module SyncSpecFiles
   include BuildMatrixParser
 
   def rewrite_travis_content(content, current_file_list, &block)
+    ignore_specs = get_ignored_specs(content)
+    current_file_list = current_file_list.reject { |file_path| ignore_specs.include?(file_path) }
     env_matrix = BuildMatrixParser.parse_env_matrix(content)
     original = extract_spec_files(env_matrix)
     after_removed = delete_removed_files(original, current_file_list)
@@ -37,12 +21,23 @@ module SyncSpecFiles
 
     content['env']['matrix'] = BuildMatrixParser.format_matrix(env_matrix)
 
-    block.call(original) if block
+    block.call(content, original, current_file_list) if block
   end
 
   module_function :rewrite_travis_content
 
   private
+
+    def self.get_ignored_specs(content)
+      ignore_specs = []
+      content['env']['global'].each do |row|
+        # Input: IGNORE_SPECS="spec/a.rb spec/b.rb"
+        # Output: ['spec/a.rb spec/b.rb']
+        matches = row.scan(/IGNORE_SPECS="\s*([^"]+)"/).first
+        ignore_specs << matches.first.split(' ') unless matches.nil?
+      end
+      ignore_specs = ignore_specs.flatten
+    end
 
     def self.extract_spec_files(env_matrix)
       test_suites = env_matrix.map do |var_hash|
@@ -75,10 +70,6 @@ module SyncSpecFiles
 
     def self.added_files(original, current_file_list)
       current_file_list - original.flatten
-    end
-
-    def self.write_to_file(content)
-      File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
     end
 
     def self.file_diff(original, current_file_list)
