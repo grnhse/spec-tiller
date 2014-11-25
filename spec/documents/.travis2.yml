@@ -1,0 +1,31 @@
+---
+language: ruby
+rvm:
+- 2.1.2
+addons:
+  hosts:
+  - example.com
+branches:
+  only:
+  - develop
+  - master
+  - "/^release\\/.*$/"
+  - "/^hotfix\\/.*$/"
+  - "/^feature\\/testing-.+$/"
+cache: bundler
+before_install:
+- export DISPLAY=:99.0
+- "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1920x1080x16"
+before_script:
+- psql -c 'create database test;' -U postgres
+- RAILS_ENV=test bundle exec rake --trace db:test:load db:seed
+script:
+- RSPEC_RETRY_COUNT=2 bundle exec rspec --pattern "spec/documents/*_spec.rb" $TEST_SUITE --tag ~local_only
+env:
+  global:
+  - RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.1
+  - IGNORE_SPECS="spec/documents/iterator5_spec.rb"
+  matrix:
+  - TEST_SUITE="spec/documents/iterator2_spec.rb"
+  - TEST_SUITE="spec/documents/iterator1_spec.rb spec/documents/iterator4_spec.rb spec/documents/iterator3_spec.rb"
+num_builds: 2

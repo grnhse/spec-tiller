@@ -19,6 +19,7 @@ namespace :spec_tiller do
     travis_yml_file = YAML::load(File.open('.travis.yml'))
     env_variables = travis_yml_file['env']['global']
     script = travis_yml_file['script'].first.gsub('$TEST_SUITE ', '')
+
     ignore_specs = SyncSpecFiles.get_ignored_specs(travis_yml_file).map { |spec| %Q("#{spec}") }
     script += %Q( --exclude-pattern #{ignore_specs.join(',')}) unless ignore_specs.empty?
 
