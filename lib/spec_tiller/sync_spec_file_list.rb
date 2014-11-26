@@ -26,18 +26,18 @@ module SyncSpecFiles
 
   module_function :rewrite_travis_content
 
-  private
-
-    def self.get_ignored_specs(content)
-      ignore_specs = []
-      content['env']['global'].each do |row|
-        # Input: IGNORE_SPECS="spec/a.rb spec/b.rb"
-        # Output: ['spec/a.rb spec/b.rb']
-        matches = row.scan(/IGNORE_SPECS="\s*([^"]+)"/).first
-        ignore_specs << matches.first.split(' ') unless matches.nil?
-      end
-      ignore_specs = ignore_specs.flatten
+  def self.get_ignored_specs(content)
+    ignore_specs = []
+    content['env']['global'].each do |row|
+      # Input: IGNORE_SPECS="spec/a.rb spec/b.rb"
+      # Output: ['spec/a.rb spec/b.rb']
+      matches = row.match(/IGNORE_SPECS="\s*([^"]+)"/)
+      ignore_specs << matches[1].split(' ') unless matches.nil?
     end
+    ignore_specs.flatten
+  end
+
+  private
 
     def self.extract_spec_files(env_matrix)
       test_suites = env_matrix.map do |var_hash|
