@@ -1,22 +1,4 @@
-require 'rake'
 require 'yaml'
-
-namespace :spec_tiller do
-  desc 'Runs whole test suite and redistributes spec files across builds according to file run time'
-  task :redistribute => :environment do
-    travis_yml_file = YAML::load(File.open('.travis.yml'))
-    env_variables = travis_yml_file['env']['global']
-    script = travis_yml_file['script'].first.gsub('$TEST_SUITE ', '')
-
-    profile_results = `#{env_variables.join(' ')} #{script} --profile 1000000000`
-
-    `echo "#{profile_results}" > spec/log/rspec_profile_output.txt`
-    TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results) do |content|
-      File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
-    end
-    puts profile_results
-  end
-end
 
 module TravisBuildMatrix
 

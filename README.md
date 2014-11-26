@@ -30,7 +30,7 @@ Upon setting this up, any time you commit or merge, you'll notice the following 
     Added:   [spec/file/added_spec.rb, spec/file/another_added_spec.rb]
 
 ####.travis.yml
-In your ``.travis.yml`` file, create a top-level variable **num_builds** and set it to the number of builds you want the spec files distributed over (deafult value is 5 builds). You must also make sure that the base of your script is as follows:  
+In your ``.travis.yml`` file, create a top-level variable **num_builds** and set it to the number of builds you want the spec files distributed over (default value is 5 builds). You must also make sure that the base of your script is as follows:
 
     bundle exec rspec $TEST_SUITE
 
@@ -62,6 +62,7 @@ Here is an example of what a ``.travis.yml`` file may look like after all is sai
     env:
       global:
       - SOME_OTHER_ENV_VAR="hello world"
+      - IGNORE_SPECS="spec/path/file_thirteen_spec.rb spec/path/file_fourteen_spec.rb"
       matrix:
       - TEST_SUITE="spec/path/file_one_spec.rb spec/path/file_two_spec.rb spec/path/file_three_spec.rb"
       - TEST_SUITE="spec/path/file_four_spec.rb"
@@ -76,6 +77,10 @@ Initially, and every so often, you will have to redistribute the spec files (mak
     spec_tiller:redistribute
 
 This will run your whole test suite, keeping track of how long each spec file takes to run, and the will distribute the spec files in order to maximize your test suite's run time, over the number of builds you've designated (with a default value of 5). **This rake task will not print the output of the rake task until it is complete.**
+
+#### Ignoring Files
+By default, both sync and redistribute will look for any tests following the "spec/**/*_spec.rb" pattern. If you want the tasks to ignore any specs, you can add the IGNORE_SPECS variable to your global variables. The value should be the patterns or specs you want to exclude, separated by spaces.
+
 ***
 ## Feature Requests & Bugs
 See [http://github.com/grnhse/spec-tiller/issues](http://github.com/grnhse/spec-tiller/issues)  
