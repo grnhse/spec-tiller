@@ -29,6 +29,7 @@ module SyncSpecFiles
   def self.get_ignored_specs(content)
     ignore_specs = []
     content['env']['global'].each do |row|
+      next unless row.is_a?(String)
       # Input: IGNORE_SPECS="spec/a.rb spec/b.rb"
       # Output: ['spec/a.rb spec/b.rb']
       matches = row.match(/IGNORE_SPECS="\s*([^"]+)"/)
