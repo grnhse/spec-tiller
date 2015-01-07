@@ -1,3 +1,5 @@
+require 'spec_tiller/travis_api'
+
 namespace :spec_tiller do
   desc 'Compares spec files in travis.yml to current list of spec files, and syncs accordingly'
   task :sync do
@@ -17,20 +19,22 @@ namespace :spec_tiller do
   desc 'Runs whole test suite and redistributes spec files across builds according to file run time'
   task :redistribute => :environment do
     travis_yml_file = YAML::load(File.open('.travis.yml'))
-    env_variables = travis_yml_file['env']['global']
-    script = travis_yml_file['script'].first.gsub('$TEST_SUITE ', '')
+    # env_variables = travis_yml_file['env']['global']
+    # script = travis_yml_file['script'].first.gsub('$TEST_SUITE ', '')
+    #
+    # ignore_specs = SyncSpecFiles.get_ignored_specs(travis_yml_file).map { |spec| %Q("#{spec}") }
+    # script += %Q( --exclude-pattern #{ignore_specs.join(',')}) unless ignore_specs.empty?
+    #
+    # profile_results = `#{env_variables.join(' ')} #{script} --profile 1000000000`
+    #
+    # `echo "#{profile_results}" > spec/log/rspec_profile_output.txt`
+    profile_results = TravisAPI.get_logs
 
-    ignore_specs = SyncSpecFiles.get_ignored_specs(travis_yml_file).map { |spec| %Q("#{spec}") }
-    script += %Q( --exclude-pattern #{ignore_specs.join(',')}) unless ignore_specs.empty?
-
-    profile_results = `#{env_variables.join(' ')} #{script} --profile 1000000000`
-
-    `echo "#{profile_results}" > spec/log/rspec_profile_output.txt`
     TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results) do |content|
       File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
     end
 
-    puts profile_results
+    #puts profile_results
   end
 
 end
