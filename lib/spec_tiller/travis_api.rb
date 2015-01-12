@@ -16,6 +16,8 @@ class TravisAPI
       end
     end
 
+    raise 'No previous builds found for specified branch.' if build.nil?
+
     profile_results = ''
 
     last_build.jobs.each do |job|
