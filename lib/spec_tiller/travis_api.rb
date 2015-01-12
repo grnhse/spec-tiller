@@ -2,15 +2,15 @@ require 'travis'
 
 class TravisAPI
 
-  def self.get_logs
+  def self.get_logs(branch)
     client = Travis::Client.new('https://api.travis-ci.com')
-    client.github_auth('09be1b4efc00b3d13cbd103b6d0fcc367a52d638')
+    client.github_auth(ENV['GITHUB_TOKEN_FOR_TRAVIS_API'])
     repository = client.repo('grnhse/greenhouse')
     last_build = nil
 
     repository.each_build do |build|
       next unless build.state == 'passed' || build.state == 'failed'
-      if build.commit.branch == 'feature/testing-spec-tiller-travis-api'
+      if build.commit.branch == branch
         last_build = build
         break
       end
@@ -19,7 +19,8 @@ class TravisAPI
     profile_results = ''
 
     last_build.jobs.each do |job|
-      profile_results += job.log.body
+      body = job.log.body
+      profile_results += job.log.body if body
     end
 
     profile_results

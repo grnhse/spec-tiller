@@ -18,19 +18,8 @@ describe 'SyncSpecFiles' do
       SyncSpecFiles.rewrite_travis_content(travis_yaml, current_file_list)
     end
 
-    it 'adds new files to the last line' do
-      last_line = travis_yaml['env']['matrix'].last
-
-      expect(last_line).to include('spec/test/new1.rb','spec/test2/new2.rb','spec/test/new3.rb')
-    end
-
-    it "doesn't add new files to other lines" do
-      travis_yaml['env']['matrix'][0..-2].each do |bucket|
-        expect(bucket).not_to include('spec/test/new1.rb')
-        expect(bucket).not_to include('spec/test2/new2.rb')
-        expect(bucket).not_to include('spec/test/new3.rb')
-      end
-
+    it 'adds new files to random line' do
+      expect(travis_yaml['env']['matrix'].join(' ')).to include('spec/test/new1.rb','spec/test2/new2.rb','spec/test/new3.rb')
     end
 
     it 'removes unused specs' do
@@ -40,8 +29,10 @@ describe 'SyncSpecFiles' do
 
     end
 
-    it 'removes unused buckets' do
-      expect(travis_yaml['env']['matrix'].length).to eq(2)
+    it 'removes lines without a TEST_SUITE' do
+      travis_yaml['env']['matrix'].each do |bucket|
+        expect(bucket).to include('TEST_SUITE="')
+      end
     end
 
     it 'does not include ignored specs' do
