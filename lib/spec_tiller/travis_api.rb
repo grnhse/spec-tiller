@@ -4,27 +4,44 @@ class TravisAPI
 
   def self.get_logs(branch)
     client = Travis::Client.new('https://api.travis-ci.com')
-    client.github_auth(ENV['GITHUB_TOKEN_FOR_TRAVIS_API'])
-    repository = client.repo('grnhse/greenhouse')
-    last_build = nil
+    client.github_auth(ENV.fetch('GITHUB_TOKEN_FOR_TRAVIS_API'))
+    repository = client.repo(current_repo)
 
-    repository.each_build do |build|
-      next unless build.state == 'passed' || build.state == 'failed'
-      if build.commit.branch == branch
-        last_build = build
-        break
-      end
-    end
+    raise 'Repository not found. Ensure Fetch URL of "git remote show origin" points to your repository.' if repository.nil?
 
-    raise 'No previous builds found for specified branch.' if build.nil?
+    raise "Branch #{branch} not found in current repository." unless repository.branches.key?(branch)
 
-    profile_results = ''
+    last_build = most_recent_build_for(repository, branch)
 
-    last_build.jobs.each do |job|
-      body = job.log.body
-      profile_results += job.log.body if body
-    end
-
-    profile_results
+    logs_for(last_build)
   end
+
+  private
+
+    def self.current_repo
+      # Input:
+      #   ...
+      #   Fetch URL: git@github.com:grnhse/spec-tiller.git
+      #   ...
+      # Output: grnhse/spec-tiller
+      `git remote show -n origin | fgrep Fetch | sed -Ee 's/^.*:(.+)\.git/\1/'`
+    end
+
+    def self.most_recent_build_for(repository, branch)
+      repository.each_build do |build|
+        if build.commit.branch == branch && build.state == 'passed'
+          return build
+        end
+      end
+
+      raise "No passing builds found for #{branch}."
+    end
+
+    def self.logs_for(build)
+      build.
+        jobs.
+        map(&:body).
+        compact.
+        join('\n')
+    end
 end
