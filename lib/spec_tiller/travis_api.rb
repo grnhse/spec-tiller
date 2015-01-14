@@ -24,7 +24,7 @@ class TravisAPI
       #   Fetch URL: git@github.com:grnhse/spec-tiller.git
       #   ...
       # Output: grnhse/spec-tiller
-      `cd ../greenhouse; git remote show -n origin`.match(/Fetch URL: .*:(.+).git/)[1]
+      `git remote show -n origin`.match(/Fetch URL: .*:(.+).git/)[1]
     end
 
     def self.most_recent_build_for(repository, branch)
