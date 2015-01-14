@@ -16,7 +16,7 @@ class TravisAPI
     logs_for(last_build)
   end
 
-  private
+
 
     def self.current_repo
       # Input:
@@ -24,7 +24,7 @@ class TravisAPI
       #   Fetch URL: git@github.com:grnhse/spec-tiller.git
       #   ...
       # Output: grnhse/spec-tiller
-      `git remote show -n origin | fgrep Fetch | sed -Ee 's/^.*:(.+)\.git/\1/'`
+      `cd ../greenhouse; git remote show -n origin`.match(/Fetch URL: .*:(.+).git/)[1]
     end
 
     def self.most_recent_build_for(repository, branch)
@@ -40,7 +40,7 @@ class TravisAPI
     def self.logs_for(build)
       build.
         jobs.
-        map(&:body).
+        map{ |j| j.log.body }.
         compact.
         join('\n')
     end
