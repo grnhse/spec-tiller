@@ -37,7 +37,7 @@ Upon setting this up, any time you commit or merge, you'll notice the following 
 You can also set up a hook to redistribute spec files with each commit. Because this task looks at previous travis builds for a specified branch, it's best to either add it to your post merge hook or point it to a branch that you know has builds on travis. Follow the instructions above and create a file that looks like this:
 
     #!/bin/sh
-    rake spec_tiller:redistribute['branch_name']
+    rake spec_tiller:redistribute [ BRANCH='branch_name' ]
 
 If you don't specify a branch_name, 'develop' will be used. You shouldn't use the 'local' option (see below) in a git hook - it may take a long time to run.
 
@@ -86,16 +86,16 @@ Here is an example of what a ``.travis.yml`` file may look like after all is sai
     num_builds: 5
 
 #### Redistributing Files
-In order to keep your jobs relatively even in length (*spec_tiller:sync* rake task adds new files to a random job), you should run redistribute occasionally. You can call the task as specified below:
+In order to keep your jobs relatively even in length (*spec_tiller:sync* rake task adds new files to a random job), you should run redistribute occasionally. Redistribute uses the rspec profile results to distribute specs into jobs that will run in roughly the same amount of time. You can call the task as specified below:
 
-    rake spec_tiller:redistribute['branch_name']
+    rake spec_tiller:redistribute [ BRANCH='branch_name']
 
 where the 'branch_name argument is optional. There are two ways to set up the redistribute task.
 
 ######Local Redistribute
 This option is the most simple - it doesn't require any extra setup. The task will run your whole test suite locally and use the profile results to redistribute your files. However, because it needs to be run locally, it works best for projects with a relatively small test suite. Larger projects should use the travis setup. To run 'local' redistribute, specify 'local' as the branch name:
 
-    rake spec_tiller:redistribute['local']
+    rake spec_tiller:redistribute BRANCH='local'
 
 ######Travis Redistribute
 This option uses profile results from past travis builds to redistribute your test suite. After it is finished running, the sync task is invoked to ensure any new files were also added. There are a few extra pieces of setup required:
@@ -138,7 +138,7 @@ This option uses profile results from past travis builds to redistribute your te
 
 To call travis redistribute, specify the branch that should be used as the base. The most recent build for the branch must have the '--profile 1000000000' option specified. If no branch is specified, 'develop' will be used. Below is an example call:
 
-    rake spec_tiller:redistribute['develop']
+    rake spec_tiller:redistribute BRANCH='develop'
 
 #### Ignoring Files
 By default, both sync and redistribute will look for any tests following the "spec/**/*_spec.rb" pattern. If you want the tasks to ignore any specs, you can add the IGNORE_SPECS variable to your global variables. The value should be the patterns or specs you want to exclude, separated by spaces.
