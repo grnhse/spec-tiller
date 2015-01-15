@@ -1,0 +1,22 @@
+---
+language: ruby
+rvm:
+- 2.1.2
+branches:
+  only:
+  - develop
+  - master
+  - "/^release\\/.*$/"
+  - "/^hotfix\\/.*$/"
+  - "/^feature\\/.*$/"
+cache: bundler
+script:
+- RSPEC_RETRY_COUNT=2 bundle exec rspec $TEST_SUITE --tag ~local_only
+- if [[ $RUN_JS == "true" ]]; then bundle exec rake jasmine:ci; fi
+env:
+  global:
+  - IGNORE_SPECS="spec/documents/*"
+  matrix:
+  - TEST_SUITE="spec/tasks/spec_tiller_rake_spec.rb"
+  - TEST_SUITE="spec/build_matrix_parser_spec.rb spec/distribute_spec_files_spec.rb spec/sync_spec_file_list_spec.rb"
+num_builds: 2
