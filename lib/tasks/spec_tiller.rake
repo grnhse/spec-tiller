@@ -9,7 +9,7 @@ namespace :spec_tiller do
   desc 'Runs whole test suite and redistributes spec files across builds according to file run time'
   task :redistribute => :environment do
 
-    branch = ENV['branch'] ? ENV['branch'] : 'develop'
+    branch = ENV['BRANCH'] ? ENV['BRANCH'] : 'develop'
 
     `echo "#{branch}"`
     travis_yml_file = YAML::load(File.open('.travis.yml'))
