@@ -1,3 +1,3 @@
 module SpecTiller
-  VERSION = '1.2.0.pre'
+  VERSION = '1.2.0'
 end
