@@ -51,7 +51,8 @@ describe 'spec_tiller:redistribute' do
 
   it 'distributes evenly based on run time' do
     content_at_start = YAML::load(File.open('.travis.yml'))
-    task.invoke('local')
+    ENV['BRANCH'] = 'local'
+    task.invoke
     content_at_end = YAML::load(File.open('.travis.yml'))
 
     expect(content_at_end['env']['matrix']).to eq(content_at_start['env']['matrix'])
