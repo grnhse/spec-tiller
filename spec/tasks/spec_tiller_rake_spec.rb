@@ -12,14 +12,14 @@ describe 'spec_tiller:sync' do
     end
   end
 
-  it 'adds new files to last line' do
+  it 'adds new files to random line' do
     temp_file_name = 'spec/documents/new_added_spec.rb'
     File.new(temp_file_name, 'w')
     content_at_start = YAML::load(File.open('.travis.yml'))
 
     task.invoke
     content_at_end = YAML::load(File.open('.travis.yml'))
-    expect(content_at_end['env']['matrix'].last).to include(temp_file_name)
+    expect(content_at_end['env']['matrix'].join(' ')).to include(temp_file_name)
 
     # Clean up added file and travis.yml
     File.delete(temp_file_name)
@@ -45,9 +45,13 @@ end
 
 describe 'spec_tiller:redistribute' do
   include_context('rake')
+  before do
+    allow(SyncSpecFiles).to receive(:sync)
+  end
 
   it 'distributes evenly based on run time' do
     content_at_start = YAML::load(File.open('.travis.yml'))
+    ENV['BRANCH'] = 'local'
     task.invoke
     content_at_end = YAML::load(File.open('.travis.yml'))
 

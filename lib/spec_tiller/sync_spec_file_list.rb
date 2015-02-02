@@ -26,14 +26,29 @@ module SyncSpecFiles
 
   module_function :rewrite_travis_content
 
+  def self.sync
+    content = YAML::load(File.open('.travis.yml'))
+    current_file_list = Dir.glob('spec/**/*_spec.rb').map { |file_path| file_path.slice(/(spec\/\S+$)/) }
+
+    puts "\nSyncing list of spec files..."
+
+    SyncSpecFiles.rewrite_travis_content(content, current_file_list) do |content, original, current_file_list|
+      File.open('.travis.yml', 'w') { |file| file.write(content.to_yaml(:line_width => -1)) }
+      puts SyncSpecFiles.file_diff(original, current_file_list)
+    end
+
+    `git add .travis.yml`
+  end
+
   def self.get_ignored_specs(content)
     ignore_specs = []
     content['env']['global'].each do |row|
-      next unless row.is_a?(String)
-      # Input: IGNORE_SPECS="spec/a.rb spec/b.rb"
-      # Output: ['spec/a.rb spec/b.rb']
-      matches = row.match(/IGNORE_SPECS="\s*([^"]+)"/)
-      ignore_specs << matches[1].split(' ') unless matches.nil?
+      if row.is_a?(String)
+        # Input: IGNORE_SPECS="spec/a.rb spec/b.rb"
+        # Output: ['spec/a.rb spec/b.rb']
+        matches = row.match(/IGNORE_SPECS="\s*([^"]+)"/)
+        ignore_specs << matches[1].split(' ') unless matches.nil?
+      end
     end
     ignore_specs.flatten
   end
@@ -57,9 +72,11 @@ module SyncSpecFiles
 
     def self.add_new_files(original, buckets, current_file_list)
       buckets_clone = buckets.map(&:dup)
+      num_buckets = buckets.length
 
       added_files(original, current_file_list).each do |spec_file|
-        buckets_clone.last << spec_file
+        bucket_index = rand(num_buckets)
+        buckets_clone[bucket_index] << spec_file
       end
 
       buckets_clone
