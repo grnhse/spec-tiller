@@ -108,13 +108,30 @@ This option uses profile results from past travis builds to redistribute your te
 
       repo, public_repo, repo:status, read:org, read:public_key
 
-  * Optionally, you can set up your travis script so that profile results can be folded. This will prevent your build log from getting cluttered. You'll most likely want to move your script into a separate file, then update your travis script to run from that file. See examples below:
+  * Optionally, you can set up your travis script so that profile results can be folded. This will prevent your build log from getting cluttered. One approach is to store profile results in another file, then call it in an after script. There are two ways to do this, but either way you'll need to include this after script in your travis file:
+
+      ``.travis.yml``:
+
+        after_script:
+        - cat /tmp/profile_results.txt
+
+  * The best way is to use a custom rspec formatter. An example exists in this project at spec/support/formatters/profile_to_file_formatter.rb. You can tell rspec to use the formatter in your spec_helper or rails_helper:
+
+      ``spec_helper.rb``:
+
+        RSpec.configure do |config|
+
+          if ENV['CI_ENV'] == 'travis'
+            config.add_formatter('progress')
+            config.add_formatter(ProfileToFileFormatter)
+          end
+        end
+
+  * The other option is to read stdout and watch for the profile results. You'll most likely want to move your script into a separate file, then update your travis script to run from that file. See examples below:
 
       ``.travis.yml``:
 
         script: ./scripts/travis_script.sh
-        after_script:
-        - cat /tmp/profile_results.txt
 
       ``scripts/travis_script.sh``:
 
@@ -135,6 +152,7 @@ This option uses profile results from past travis builds to redistribute your te
             echo -e "$line"
           fi
         done
+
 
 To call travis redistribute, specify the branch that should be used as the base. The most recent build for the branch must have the '--profile 1000000000' option specified. If no branch is specified, 'develop' will be used. Below is an example call:
 
