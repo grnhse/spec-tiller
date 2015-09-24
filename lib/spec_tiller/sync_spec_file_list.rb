@@ -4,13 +4,15 @@ module SyncSpecFiles
   include BuildMatrixParser
 
   def rewrite_travis_content(content, current_file_list, &block)
+    num_buckets = content['num_builds']
+
     ignore_specs = get_ignored_specs(content)
     current_file_list = current_file_list.reject { |file_path| ignore_specs.include?(file_path) }
     env_matrix = BuildMatrixParser.parse_env_matrix(content)
     original = extract_spec_files(env_matrix)
     after_removed = delete_removed_files(original, current_file_list)
-    after_added = add_new_files(original, after_removed, current_file_list)
-
+    after_added = add_new_files(original, after_removed, current_file_list, num_buckets)
+    
     env_matrix.each do |var_hash|
       if var_hash.has_key?('TEST_SUITE')
         test_bucket = after_added.shift
@@ -70,9 +72,11 @@ module SyncSpecFiles
       end
     end
 
-    def self.add_new_files(original, buckets, current_file_list)
+    def self.add_new_files(original, buckets, current_file_list, suggested_num_buckets)
       buckets_clone = buckets.map(&:dup)
-      num_buckets = buckets.length
+      current_num_buckets = buckets_clone.length
+
+      num_buckets = current_num_buckets < suggested_num_buckets ? current_num_buckets : suggested_num_buckets
 
       added_files(original, current_file_list).each do |spec_file|
         bucket_index = rand(num_buckets)
