@@ -72,11 +72,12 @@ module SyncSpecFiles
       end
     end
 
-    def self.add_new_files(original, buckets, current_file_list, suggested_num_buckets)
+    def self.add_new_files(original, buckets, current_file_list, num_buckets)
       buckets_clone = buckets.map(&:dup)
-      current_num_buckets = buckets_clone.length
+      test_suite_worker_count = buckets_clone.length
 
-      num_buckets = current_num_buckets < suggested_num_buckets ? current_num_buckets : suggested_num_buckets
+      # This check is to determine if the stated bucket count is > available workers
+      num_buckets = test_suite_worker_count < num_buckets ? test_suite_worker_count : num_buckets
 
       added_files(original, current_file_list).each do |spec_file|
         bucket_index = rand(num_buckets)
