@@ -14,7 +14,7 @@ module SyncSpecFiles
     original = extract_spec_files(env_matrix)
     after_removed = delete_removed_files(original, current_file_list)
     after_added = add_new_files(original, after_removed, current_file_list, num_buckets)
-    
+
     env_matrix.each do |var_hash|
       if var_hash.has_key?('TEST_SUITE')
         test_bucket = after_added.shift
@@ -98,10 +98,8 @@ module SyncSpecFiles
     end
 
     def self.file_diff(original, current_file_list)
-      
       removed_files = deleted_files(original, current_file_list).sort
       removed = removed_files.empty? ? 'No spec files removed' : removed_files
-      
       added_files = added_files(original, current_file_list).sort
       added = added_files.empty? ? 'No spec files added' : added_files
 
