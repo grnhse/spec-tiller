@@ -9,6 +9,8 @@ module SyncSpecFiles
     ignore_specs = get_ignored_specs(content)
     current_file_list = current_file_list.reject { |file_path| ignore_specs.include?(file_path) }
     env_matrix = BuildMatrixParser.parse_env_matrix(content)
+
+    ignored_env_vars = env_matrix.slice!(num_buckets..-1)
     original = extract_spec_files(env_matrix)
     after_removed = delete_removed_files(original, current_file_list)
     after_added = add_new_files(original, after_removed, current_file_list, num_buckets)
@@ -20,9 +22,9 @@ module SyncSpecFiles
         var_hash['TEST_SUITE'] = "#{test_bucket.join(' ')}"
       end
     end
+    env_matrix = env_matrix + ignored_env_vars unless ignored_env_vars.nil?
 
     content['env']['matrix'] = BuildMatrixParser.format_matrix(env_matrix)
-
     block.call(content, original, current_file_list) if block
   end
 
@@ -96,9 +98,10 @@ module SyncSpecFiles
     end
 
     def self.file_diff(original, current_file_list)
+      
       removed_files = deleted_files(original, current_file_list).sort
       removed = removed_files.empty? ? 'No spec files removed' : removed_files
-
+      
       added_files = added_files(original, current_file_list).sort
       added = added_files.empty? ? 'No spec files added' : added_files
 

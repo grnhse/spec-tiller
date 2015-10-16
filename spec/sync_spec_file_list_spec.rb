@@ -30,10 +30,8 @@ describe 'SyncSpecFiles' do
 
       end
 
-      it 'removes lines without a TEST_SUITE' do
-        travis_yaml['env']['matrix'].each do |bucket|
-          expect(bucket).to include('TEST_SUITE="')
-        end
+      it 'removes lines without a *SUITE variable' do
+        expect(travis_yaml['env']['matrix'].grep(/SUITE/).count).to eq(5)
       end
 
       it 'does not include ignored specs' do
@@ -77,8 +75,19 @@ describe 'SyncSpecFiles' do
             expect(buckets).to include('spec/test/new1.rb','spec/test2/new2.rb','spec/test/new3.rb')
           end
         end
+
+        it 'when num-builds < current bucket count it ignores later buckets' do
+          travis_yaml['num_builds'] = 5
+
+          SyncSpecFiles.rewrite_travis_content(travis_yaml, current_file_list) do |yaml| 
+            matrix = yaml['env']['matrix']
+            last_bucket = matrix.last
+            second_to_last_bucket = matrix[-2]
+            expect(last_bucket).to eq("SAUCE_SUITE=\"apsec2.rb aspec3.rb\" SAUCE_SUITE_BROWSERS=\"IE 5\"")
+            expect(second_to_last_bucket).to eq("SAUCE_SUITE=\"random_spec_1.rb random_spec_2.rb\" SAUCE_SUITE_BROWSERS=\"something else here\"")
+          end
+        end
       end
     end
   end
-
 end

@@ -19,16 +19,19 @@ module BuildMatrixParser
     env_matrix.each do |var_hash|
       next if nil_or_empty?(var_hash)
       line = var_hash.map { |key, value| %(#{key}="#{value}") }.join(' ')
-
       content_env_matrix << line
     end
-
     content_env_matrix
   end
   module_function :format_matrix
 
   def self.nil_or_empty?(var_hash)
-    return true if var_hash.empty? || var_hash['TEST_SUITE'].nil?
-    var_hash['TEST_SUITE'].empty?
+    
+    return true if var_hash.empty? || contains_suite_env_var(var_hash)
+    var_hash['TEST_SUITE'].empty? unless var_hash['TEST_SUITE'].nil?
+  end
+
+  def self.contains_suite_env_var(var_hash)
+    var_hash.keys.grep(/SUITE/).empty?
   end
 end
