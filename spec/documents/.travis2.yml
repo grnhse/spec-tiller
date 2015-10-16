@@ -28,4 +28,4 @@ env:
   matrix:
   - TEST_SUITE="spec/documents/iterator2_spec.rb"
   - TEST_SUITE="spec/documents/iterator1_spec.rb spec/documents/iterator4_spec.rb spec/documents/iterator3_spec.rb"
-num_builds: 2
+num_builds: 3

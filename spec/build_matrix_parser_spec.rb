@@ -9,7 +9,7 @@ describe BuildMatrixParser do
     let(:actual_parsed_matrix) { BuildMatrixParser.parse_env_matrix(travis_yml_file) }
 
     it 'will maintain same number of elements' do
-      expect(actual_parsed_matrix.length).to eq(5)
+      expect(actual_parsed_matrix.length).to eq(7)
     end
 
     it 'will parse multiple variables' do
