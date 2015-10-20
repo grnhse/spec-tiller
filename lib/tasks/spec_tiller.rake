@@ -8,10 +8,15 @@ namespace :spec_tiller do
 
   desc 'Runs whole test suite and redistributes spec files across builds according to file run time'
   task :redistribute => :environment do
-
+    
     branch = ENV['BRANCH'] ? ENV['BRANCH'] : 'develop'
+    build_number = ENV['BUILD']
 
-    `echo "#{branch}"`
+    if build_number
+      `echo build_number:"#{build_number}"`
+    else
+      `echo branch:"#{branch}"`
+    end
     travis_yml_file = YAML::load(File.open('.travis.yml'))
 
     if branch == 'local'
@@ -22,8 +27,10 @@ namespace :spec_tiller do
       script += %Q( --exclude-pattern #{ignore_specs.join(',')}) unless ignore_specs.empty?
 
       profile_results = `#{env_variables.join(' ')} #{script} --profile 1000000000`
+    elsif build_number
+      profile_results = TravisAPI.get_logs_from_build_number(build_number)
     else
-      profile_results = TravisAPI.get_logs(branch)
+      profile_results = TravisAPI.get_logs_from_branch(branch)
     end
 
     TravisBuildMatrix::SpecDistributor.new(travis_yml_file, profile_results) do |content|
